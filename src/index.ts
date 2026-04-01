@@ -1,12 +1,11 @@
 import express from "express";
-import bodyParser from "body-parser";
 
-import todoRoutes from "./routes/todos.js";
+import todoRoutes from "./routes/todos";
 
 const app = express();
 const PORT = 5000;
 
-app.use(bodyParser.json());
+app.use(express.json());
 
 app.use("/todos", todoRoutes);
 
