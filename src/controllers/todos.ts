@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
-import { readTodos, writeTodos } from "../services/todos";
+import * as todoService from "../services/todos";
 import { Todo, todoParams } from "../types/todos";
 
 export const getTodos = async (req: Request, res: Response) => {
-  const todos = await readTodos();
+  const todos = await todoService.getTodos();
   const { search } = req.query;
   // This is to search by title
   if (search) {
@@ -21,23 +21,20 @@ export const getTodos = async (req: Request, res: Response) => {
 
 export const createTodo = async (req: Request, res: Response) => {
   const { title } = req.body;
-  const todos = await readTodos();
   const newTodo: Todo = {
-    id: todos.length + 1,
     title,
     isCompleted: false,
   };
-  todos.push(newTodo);
-  await writeTodos(todos);
-  res.status(201).send({ message: "Todo created successfully", todo: newTodo });
+
+  const createdTodo = await todoService.createTodo(newTodo);
+  res
+    .status(201)
+    .send({ message: "Todo created successfully", todo: createdTodo });
 };
 
 export const getTodoById = async (req: Request<todoParams>, res: Response) => {
   const { id } = req.params;
-  const todos = await readTodos();
-  const todo = todos.find((t) => {
-    return Number(t.id) === Number(id);
-  });
+  const todo = await todoService.findTodoById(id);
   if (!todo) {
     return res.status(404).send({ message: "Todo not found" });
   }
@@ -49,26 +46,19 @@ export const getTodoById = async (req: Request<todoParams>, res: Response) => {
 
 export const updateTodo = async (req: Request<todoParams>, res: Response) => {
   const { id } = req.params;
-  const { title, isCompleted } = req.body;
-  const todos = await readTodos();
-  const todo = todos.find((t) => Number(t.id) === Number(id));
+  const todo = await todoService.updateTodo(id, req.body);
   if (!todo) {
     return res.status(404).send({ message: "Todo not found" });
   }
-  todo.title = title;
-  todo.isCompleted = isCompleted;
-  await writeTodos(todos);
+
   res.send({ message: "Todo updated successfully", todo });
 };
 
 export const deleteTodo = async (req: Request<todoParams>, res: Response) => {
   const { id } = req.params;
-  const todos = await readTodos();
-  const index = todos.findIndex((t) => Number(t.id) === Number(id));
-  if (index === -1) {
+  const deleted = await todoService.deleteTodo(id);
+  if (!deleted) {
     return res.status(404).send({ message: "Todo not found" });
   }
-  todos.splice(index, 1);
-  await writeTodos(todos);
   res.send({ message: "Todo deleted successfully" });
 };
