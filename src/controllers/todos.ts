@@ -4,7 +4,19 @@ import { Todo, todoParams } from "../types/todos";
 
 export const getTodos = async (req: Request, res: Response) => {
   const todos = await readTodos();
-  res.send({ message: "Todos retrieved successfully", todos });
+  const { search } = req.query;
+  // This is to search by title
+  if (search) {
+    const searchStr = String(search).toLowerCase();
+    const filteredTodos = todos.filter((todo) =>
+      todo.title.toLowerCase().includes(searchStr),
+    );
+    return res.send({
+      message: "Todos retrieved successfully!",
+      todos: filteredTodos,
+    });
+  }
+  res.send({ message: "Todos retrieved successfully!", todos });
 };
 
 export const createTodo = async (req: Request, res: Response) => {
@@ -23,18 +35,23 @@ export const createTodo = async (req: Request, res: Response) => {
 export const getTodoById = async (req: Request<todoParams>, res: Response) => {
   const { id } = req.params;
   const todos = await readTodos();
-  const todo = todos.find((t) => t.id === parseInt(id));
+  const todo = todos.find((t) => {
+    return Number(t.id) === Number(id);
+  });
   if (!todo) {
     return res.status(404).send({ message: "Todo not found" });
   }
-  res.send({ message: "Todo retrieved successfully", todo });
+  res.send({
+    message: "Todo retrieved successfully",
+    todo,
+  });
 };
 
 export const updateTodo = async (req: Request<todoParams>, res: Response) => {
   const { id } = req.params;
   const { title, isCompleted } = req.body;
   const todos = await readTodos();
-  const todo = todos.find((t) => t.id === parseInt(id));
+  const todo = todos.find((t) => Number(t.id) === Number(id));
   if (!todo) {
     return res.status(404).send({ message: "Todo not found" });
   }
@@ -47,7 +64,7 @@ export const updateTodo = async (req: Request<todoParams>, res: Response) => {
 export const deleteTodo = async (req: Request<todoParams>, res: Response) => {
   const { id } = req.params;
   const todos = await readTodos();
-  const index = todos.findIndex((t) => t.id === parseInt(id));
+  const index = todos.findIndex((t) => Number(t.id) === Number(id));
   if (index === -1) {
     return res.status(404).send({ message: "Todo not found" });
   }
