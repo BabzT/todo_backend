@@ -3,19 +3,9 @@ import * as todoService from "../services/todos";
 import { Todo, todoParams } from "../types/todos";
 
 export const getTodos = async (req: Request, res: Response) => {
-  const todos = await todoService.getTodos();
   const { search } = req.query;
   // This is to search by title
-  if (search) {
-    const searchStr = String(search).toLowerCase();
-    const filteredTodos = todos.filter((todo) =>
-      todo.title.toLowerCase().includes(searchStr),
-    );
-    return res.send({
-      message: "Todos retrieved successfully!",
-      todos: filteredTodos,
-    });
-  }
+  const todos = await todoService.getTodos(search as string | undefined);
   res.send({ message: "Todos retrieved successfully!", todos });
 };
 
@@ -36,7 +26,8 @@ export const getTodoById = async (req: Request<todoParams>, res: Response) => {
   const { id } = req.params;
   const todo = await todoService.findTodoById(id);
   if (!todo) {
-    return res.status(404).send({ message: "Todo not found" });
+    res.status(404).send({ message: "Todo not found" });
+    return;
   }
   res.send({
     message: "Todo retrieved successfully",
