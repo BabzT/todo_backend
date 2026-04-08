@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import * as todoService from "../services/todos";
-import { Todo, todoParams } from "../types/todos";
+import { Todo } from "../types/todos";
 
 export const getTodos = async (req: Request, res: Response) => {
   const { search } = req.query;
@@ -22,12 +22,11 @@ export const createTodo = async (req: Request, res: Response) => {
     .send({ message: "Todo created successfully", todo: createdTodo });
 };
 
-export const getTodoById = async (req: Request<todoParams>, res: Response) => {
-  const { id } = req.params;
+export const getTodoById = async (req: Request, res: Response) => {
+  const id = req.params.id as string;
   const todo = await todoService.findTodoById(id);
   if (!todo) {
-    res.status(404).send({ message: "Todo not found" });
-    return;
+    return res.status(404).send({ message: "Todo not found" });
   }
   res.send({
     message: "Todo retrieved successfully",
@@ -35,8 +34,8 @@ export const getTodoById = async (req: Request<todoParams>, res: Response) => {
   });
 };
 
-export const updateTodo = async (req: Request<todoParams>, res: Response) => {
-  const { id } = req.params;
+export const updateTodo = async (req: Request, res: Response) => {
+  const id = req.params.id as string;
   const todo = await todoService.updateTodo(id, req.body);
   if (!todo) {
     return res.status(404).send({ message: "Todo not found" });
@@ -45,8 +44,8 @@ export const updateTodo = async (req: Request<todoParams>, res: Response) => {
   res.send({ message: "Todo updated successfully", todo });
 };
 
-export const deleteTodo = async (req: Request<todoParams>, res: Response) => {
-  const { id } = req.params;
+export const deleteTodo = async (req: Request, res: Response) => {
+  const id = req.params.id as string;
   const deleted = await todoService.deleteTodo(id);
   if (!deleted) {
     return res.status(404).send({ message: "Todo not found" });
