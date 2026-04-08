@@ -1,19 +1,10 @@
 import { Request, Response, NextFunction } from "express";
-import { ZodError } from "zod";
+import { ZodError, ZodObject } from "zod";
 
-interface ValidateSchemas {
-  params?: any;
-  body?: any;
-  query?: any;
-}
-
-const validateRequest = (schemas: ValidateSchemas) => {
+export const validateRequestBody = (bodySchema: ZodObject) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
-      for (const [source, schema] of Object.entries(schemas)) {
-        const data = schema.parse(req[source as keyof Request]);
-        (req as any)[source] = data;
-      }
+      bodySchema.parse(req.body);
       next();
     } catch (err) {
       if (err instanceof ZodError) {
@@ -24,5 +15,3 @@ const validateRequest = (schemas: ValidateSchemas) => {
     }
   };
 };
-
-export default validateRequest;
