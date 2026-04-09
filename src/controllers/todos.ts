@@ -1,27 +1,19 @@
-import { NextFunction, Request, Response } from "express";
+import { Request, Response } from "express";
 import * as todoService from "../services/todos";
 import { Todo } from "../types/todos";
-import { CustomError } from "../types/error";
 
-export const getTodos = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const getTodos = async (req: Request, res: Response) => {
   try {
     const { search } = req.query;
     const todos = await todoService.getTodos(search as string | undefined);
     res.send({ message: "Todos retrieved successfully!", todos });
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.status(500).send({ message: "Internal server error" });
   }
 };
 
-export const createTodo = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const createTodo = async (req: Request, res: Response) => {
   try {
     const { title } = req.body;
     const newTodo: Todo = {
@@ -34,67 +26,55 @@ export const createTodo = async (
       .status(201)
       .send({ message: "Todo created successfully", todo: createdTodo });
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.status(500).send({ message: "Internal server error" });
   }
 };
 
-export const getTodoById = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const getTodoById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
     const todo = await todoService.findTodoById(id);
     if (!todo) {
-      const error: CustomError = new Error("Todo not found");
-      error.statusCode = 404;
-      return next(error);
+      return res.status(404).send({ message: "Todo not found" });
     }
     res.send({
       message: "Todo retrieved successfully",
       todo,
     });
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.status(500).send({ message: "Internal server error" });
   }
 };
 
-export const updateTodo = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const updateTodo = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const todo = await todoService.updateTodo(id, req.body);
-    if (!todo) {
-      const error: CustomError = new Error("Todo not found");
-      error.statusCode = 404;
-      return next(error);
+    const isTodoExist = await todoService.findTodoById(id);
+    if (!isTodoExist) {
+      return res.status(404).send({ message: "Todo not found" });
     }
-
+    const todo = await todoService.updateTodo(id, req.body);
     res.send({ message: "Todo updated successfully", todo });
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.status(500).send({ message: "Internal server error" });
   }
 };
 
-export const deleteTodo = async (
-  req: Request,
-  res: Response,
-  next: NextFunction,
-) => {
+export const deleteTodo = async (req: Request, res: Response) => {
   try {
     const id = req.params.id as string;
-    const deleted = await todoService.deleteTodo(id);
-    if (!deleted) {
-      const error: CustomError = new Error("Todo not found");
-      error.statusCode = 404;
-      return next(error);
+    const isTodoExist = await todoService.findTodoById(id);
+    if (!isTodoExist) {
+      return res.status(404).send({ message: "Todo not found" });
     }
+    await todoService.deleteTodo(id);
+
     res.send({ message: "Todo deleted successfully" });
   } catch (error) {
-    next(error);
+    console.log(error);
+    res.status(500).send({ message: "Internal server error" });
   }
 };
