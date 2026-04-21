@@ -8,7 +8,7 @@ export const validateRequestBody = (bodySchema: ZodObject) => {
       next();
     } catch (err) {
       if (err instanceof ZodError) {
-        const message = err.issues.map((e) => e.message).join(", ");
+        const message: string = err.issues.map((e) => e.message).join(", ");
         return res.status(400).send({ message: message || "Validation error" });
       }
       next(err);
